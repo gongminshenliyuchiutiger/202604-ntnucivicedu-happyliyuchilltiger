@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公民科課程設計與教材製作AI提示詞庫整合系統</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        .card:hover { border-color: #3b82f6; transition: all 0.3s ease; }
+        .copy-toast { visibility: hidden; min-width: 200px; margin-left: -100px; background-color: #333; color: #fff; text-align: center; border-radius: 8px; padding: 12px; position: fixed; z-index: 1; left: 50%; bottom: 30px; }
+        .show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+        .active-tab { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
+
+        /* 吉祥物效果 */
+        .mascot-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 100;
+            width: 100px;
+            height: 100px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .mascot-container img {
+            width: 100%;
+            height: 100%;
+        }
+        .mascot-container:hover {
+            animation: shake 0.1s infinite, neon-glow 1.5s infinite alternate;
+        }
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        @keyframes neon-glow {
+            from {
+                filter: drop-shadow(0 0 5px #fff) drop-shadow(0 0 10px #fff) drop-shadow(0 0 15px #0073ff) drop-shadow(0 0 20px #0073ff);
+            }
+            to {
+                filter: drop-shadow(0 0 10px #fff) drop-shadow(0 0 20px #ff00de) drop-shadow(0 0 30px #ff00de) drop-shadow(0 0 40px #ff00de);
+            }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- 吉祥物 -->
+    <div class="mascot-container" title="Liyu Chill Guy">
+        <img src="https://gongminshenliyuchiutiger.github.io/__public-useful__/image/LiyuChill.svg" alt="LiyuChillGuy">
+    </div>
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-16 mt-8">
+            <h1 class="font-extrabold tracking-tight leading-none mb-4">
+                <span class="block text-2xl md:text-3xl text-gray-500 mb-2 font-medium">公民科課程設計與教材製作</span>
+                <span class="block text-4xl md:text-6xl bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-500">
+                    AI提示詞庫整合系統
+                </span>
+            </h1>
+            <div class="h-1 w-24 bg-blue-600 mx-auto rounded-full opacity-50"></div>
+        </div>
+
+        <!-- Workflow Tabs -->
+        <div class="flex flex-wrap justify-center gap-4 md:gap-12 mb-8 border-b border-gray-200 px-2 pb-2">
+            <button onclick="switchTab('stage1')" id="tab-stage1" class="pb-3 text-base md:text-lg active-tab whitespace-nowrap"><i class="fa-solid fa-book-open mr-2"></i>1. 教材解構</button>
+            <button onclick="switchTab('stage2')" id="tab-stage2" class="pb-3 text-base md:text-lg text-gray-500 hover:text-blue-600 whitespace-nowrap"><i class="fa-solid fa-lightbulb mr-2"></i>2. 創意融入</button>
+            <button onclick="switchTab('stage3')" id="tab-stage3" class="pb-3 text-base md:text-lg text-gray-500 hover:text-blue-600 whitespace-nowrap"><i class="fa-solid fa-layer-group mr-2"></i>3. 活動素材</button>
+            <button onclick="switchTab('stage4')" id="tab-stage4" class="pb-3 text-base md:text-lg text-gray-500 hover:text-blue-600 whitespace-nowrap"><i class="fa-solid fa-clipboard-check mr-2"></i>4. 試教與評量</button>
+        </div>
+
+        <!-- Stage Description -->
+        <div class="mb-6 border-l-4 border-blue-600 pl-4 py-1 bg-blue-50/50 rounded-r-lg">
+            <h2 id="stage-title" class="text-xl font-bold text-gray-800"><i class="fa-solid fa-book-open mr-2 text-blue-500"></i>階段一：書商教材解構與基礎熟悉</h2>
+            <p id="stage-desc" class="text-gray-600 text-sm mt-1">協助師培生快速掌握課本內容架構，找出核心知識點與學生盲區。</p>
+        </div>
+
+        <!-- Cards Container -->
+        <div id="content-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
+            <!-- 內容會由 JavaScript 動態填入 -->
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-20 text-center text-gray-400 text-sm border-t pt-8 pb-4">
+            <div class="mb-3">
+                <a href="https://www.facebook.com/happyliyuchilltiger" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center group">
+                    <i class="fa-brands fa-facebook text-2xl text-blue-600 mr-2 group-hover:scale-110 transition-transform"></i>
+                    <span class="font-medium text-base text-gray-600 group-hover:text-blue-600 transition-colors">快樂鯉魚秋老虎</span>
+                </a>
+            </div>
+            <p>Copyright © Liyuchiutiger Gongminshen</p>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="copy-toast">提示詞已複製到剪貼簿！</div>
+
+    <script>
+        const stageInfo = {
+            stage1: { title: '<i class="fa-solid fa-book-open mr-2 text-blue-500"></i>階段一：書商教材解構與基礎熟悉', desc: '扎實基本功：上傳或輸入書商課本內容，讓 AI 幫你萃取核心概念，預測學生盲點，並補充最新時事。' },
+            stage2: { title: '<i class="fa-solid fa-lightbulb mr-2 text-yellow-500"></i>階段二：引起動機與創意融入', desc: '加點調味料：在課本的基礎上，設計有趣的開場破冰、將生硬法規轉化為故事，或融入學生次文化。' },
+            stage3: { title: '<i class="fa-solid fa-layer-group mr-2 text-pink-500"></i>階段三：互動素材與學習單設計', desc: '產出教具：將教材轉化為實作活動、具備思考層次的挖空學習單，以及具視覺衝擊力的簡報大綱。' },
+            stage4: { title: '<i class="fa-solid fa-clipboard-check mr-2 text-purple-500"></i>階段四：課堂評量與試教防禦', desc: '備戰上台：產出快問快答、模擬會考/學測素養題，並請 AI 扮演嚴格教授針對你的試教內容進行犀利講評。' }
+        };
+
+        const data = {
+            stage1: [
+                { id: 'S1-1', title: '概念地圖萃取', tool: 'NotebookLM', tag: '理解課本', content: '我上傳了書商的這個單元教材 PDF，請幫我萃取出這個單元的核心「概念地圖」與「知識點階層」，讓我可以快速掌握備課重點。' },
+                { id: 'S1-2', title: '難點與迷思預測', tool: 'Gemini', tag: '學情準備', content: '根據這段課本內容：[貼上課文段落]，請預測 [國中/高中生] 在閱讀時最容易卡關的「專有名詞」與「迷思概念」，並告訴我該如何用白話文解釋。' },
+                { id: 'S1-3', title: '新舊課綱差異比對', tool: 'NotebookLM', tag: '版本更新', content: '我上傳了同一個單元的「舊版課本」與「新版課本」資料。請幫我比對並列出：這個學期刪除了哪些舊觀念？新增了哪些必教的重點？' },
+                { id: 'S1-4', title: '先備知識連結', tool: 'Gemini', tag: '教學銜接', content: '我要教高中公民的 [輸入單元：例如行政法]。請告訴我，學生在「國小社會」與「國中公民」階段，分別已經學過哪些相關的先備知識，我可以如何從那些經驗破題開場？' },
+                { id: 'S1-5', title: '文本難度降維打擊', tool: 'Gemini', tag: '差異化', content: '課本裡的這段描述：[貼上艱澀課文] 對班上後段班的學生來說太難了。請幫我「降階」翻譯成兩種版本：A. 國小高年級也能聽懂的白話文版 B. 結合速食店或超商結帳的生活比喻版。' },
+                { id: 'S1-6', title: '找尋補充時事', tool: 'Gemini', tag: '更新案例', content: '這個課本單元裡舉的案例有點舊了，請根據課本的 [輸入知識點，如：無罪推定原則]，幫我搜尋 3 個近一年內的台灣時事新聞，作為上課的補充案例，並附上簡短的事件爭點。' }
+            ],
+            stage2: [
+                { id: 'S2-1', title: '引起動機 (Hook) 設計', tool: 'Gemini', tag: '破冰設計', content: '這個講述 [輸入單元名稱] 的第一堂課有點枯燥。請幫我設計一個 5 分鐘的課前「引起動機」活動或情境提問（要跟學生的校園生活經驗有關），讓學生馬上感興趣。' },
+                { id: 'S2-2', title: '枯燥文本故事化', tool: 'Gemini', tag: '情境塑造', content: '課文關於 [行政救濟程序] 的描述非常生硬，請依照課本的知識結構，將它改寫成一個懸疑風格的校園解謎小故事，讓學生在跟著主角解謎的過程中學會這個概念。' },
+                { id: 'S2-3', title: '融入次文化梗', tool: 'Gemini', tag: '增進共鳴', content: '請將課本中的 [機會成本與選擇] 概念，結合目前中學生流行的次文化、電玩遊戲或動漫梗，設計一個能讓全班秒懂且會心一笑的舉例方式。' },
+                { id: 'S2-4', title: '兩難情境 (Dilemma) 設計', tool: 'Gemini', tag: '議題思辨', content: '針對課本裡的 [媒體言論自由與隱私權] 主題，請幫我設計一個沒有絕對對錯的「道德兩難選邊站」活動情境，讓全班可以分為兩派進行初步的立場表態與討論。' },
+                { id: 'S2-5', title: '角色扮演陣營卡', tool: 'Gemini (Canvas)', tag: '公聽會', content: '我們要在課堂上針對 [校園廢除早自習] 舉辦模擬公聽會。請為我生成 4 張不同立場的「角色卡」（包含：學校行政、老師、家長、學生會），每張卡片需註明其背景設定、堅持的核心論點，以及一個秘密的談判底線。' },
+                { id: 'S2-6', title: 'ORID 焦點討論導引', tool: 'Gemini', tag: '提問設計', content: '我等一下要放一段關於 [國民法官制度介紹] 的 3 分鐘新聞影片給學生看。請利用 ORID（客觀、反思、詮釋、決定）焦點討論法，幫我設計 4 個對應層次的問題，讓我可以在播完影片後立刻提問。' }
+            ],
+            stage3: [
+                { id: 'S3-1', title: '課堂實作任務轉換', tool: 'Gemini', tag: '活動規劃', content: '課本針對 [性別平權] 大部分都是理論講述，請幫我設計一堂 45 分鐘的「課堂實作任務」，讓學生分組應用課本知識去解決一個具體的社會或校園情境問題。' },
+                { id: 'S3-2', title: '挖空思考學習單', tool: 'Gemini', tag: '學習單', content: '參考我貼上的課本重點，製作一份「半結構式的重點挖空學習單」。注意要有漸進層次感，不能只是單純填空抄課本，最後必須加入 2 題沒有標準答案的批判性思考題。' },
+                { id: 'S3-3', title: '視覺化簡報優化', tool: 'Gemini', tag: '媒材準備', content: '我要針對這個單元製作教學簡報。請給我 8 頁的簡報大綱，並且給予我具體的視覺建議：明確告訴我「畫面上不要放哪些多餘的文字」，以及「應該用什麼圖表/圖像」來代替文字以增強視覺衝擊力。' },
+                { id: 'S3-4', title: '課堂辯論攻防準備', tool: 'NotebookLM', tag: '辯論指引', content: '針對上傳的這幾篇正反方閱讀素材，我要讓學生進行 [死刑存廢] 小辯論。請幫我整理出一份給學生的「攻防懶人包」，包含：正方申論最強架構、反方申論最強架構，以及雙方預期會交鋒的 3 個主要考點。' },
+                { id: 'S3-5', title: '趣味卡牌遊戲機制', tool: 'Gemini', tag: '遊戲化', content: '請將課本裡 [民法的行為能力] (無、限制、完全行為能力) 的概念，轉化為一套 15 分鐘可以玩完的簡易卡牌遊戲機制。請告訴我遊戲的獲勝規則，以及需要製作哪些「身分卡」與「事件卡」。' },
+                { id: 'S3-6', title: '差異化教學任務設計', tool: 'Gemini', tag: '照顧差異', content: '在教 [中央政府體制] 這個單元時，班上學生程度落差很大。請給定同一個學習目標，幫我設計三個等級的「彈性學習任務」：A. 基礎版（選填或連連看）、B. 進階版（推論與提問）、C. 挑戰版（個案分析）。' }
+            ],
+            stage4: [
+                { id: 'S4-1', title: '概念快問快答命題', tool: 'Gemini', tag: '形成性評量', content: '根據上述的課本內容，幫我生成 5 題可以用在 Kahoot! 或課堂舉手搶答的「快問快答選擇題」，注意選項要設計得有誘答力，不能太容易盲猜。' },
+                { id: 'S4-2', title: '素養情境混合題組', tool: 'NotebookLM', tag: '總結性評量', content: '結合課本重點與我上傳的補充時事，模擬「國中教育會考/高中學測」的命題風格，設計一組包含圖表引導的混合題組（含 2 題單選、1 題手寫簡答），並提供給分規準。' },
+                { id: 'S4-3', title: '實作活動評量尺規', tool: 'Gemini', tag: 'Rubric', content: '學生即將進行 [社區改變提案] 小組跑堂發表。請為此實作任務設計一份評量尺規表 (Rubric)，涵蓋「問題分析、方案可行性、表達呈現、團隊合作」四向度，並給予 1~4 分的具體表現描述。' },
+                { id: 'S4-4', title: '段考陷阱題偵測', tool: 'Gemini', tag: '試題除錯', content: '這是我剛出好的一題段考選擇題：[貼上題目與選項]。請你扮演「愛鑽牛角尖且邏輯很好的學生」，幫我找出這題的敘述有沒有邏輯漏洞、超綱的專有名詞，或是可能導致「全送分」的瑕疵，並建議修改方式。' },
+                { id: 'S4-5', title: '反思退出卡 (Exit Ticket)', tool: 'Gemini', tag: '收斂總結', content: '我剛教完 [媒體亂象與識讀] 這個單元。為了確認學生真的有聽懂，請幫我設計 3 個在下課前最後 5 分鐘讓學生寫在小紙條上的「退出卡 (Exit Ticket)」問題，問題必須簡短且能刺中核心。' },
+                { id: 'S4-6', title: '試教(Demo)防禦演練', tool: 'Gemini', tag: '試教準備', content: '我下週要在教材教法課堂上，對著教授試教這個單元 15 分鐘。請你扮演嚴格且資深的指導教授，針對我可能「把課本教得太無聊」或「概念解釋不精確」的地方，預先提出 3 個犀利的講評與挑戰問題，讓我準備防禦。' }
+            ]
+        };
+
+        function renderPrompts(tab) {
+            const container = document.getElementById('content-grid');
+            container.innerHTML = '';
+            
+            data[tab].forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card bg-white p-6 rounded-xl border border-gray-200 shadow-sm cursor-pointer relative group';
+                card.onclick = () => copyText(item.content);
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center flex-wrap">
+                            <span class="text-xs font-bold text-gray-500 mr-2 border border-gray-300 rounded px-1.5 py-0.5 whitespace-nowrap mb-1"><i class="fa-solid fa-robot mr-1"></i>${item.tool}</span>
+                            <span class="text-lg font-bold text-gray-800 mb-1">${item.title}</span>
+                        </div>
+                        <span class="text-xs font-bold px-2 py-1 rounded bg-blue-50 text-blue-600 group-hover:bg-blue-100 whitespace-nowrap">${item.tag}</span>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">${item.content}</p>
+                    <div class="text-xs text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                        <i class="fa-regular fa-copy mr-1"></i> 點擊一鍵複製提示詞
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('button[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('active-tab');
+                btn.classList.add('text-gray-500');
+            });
+            document.getElementById(`tab-${tab}`).classList.add('active-tab');
+            document.getElementById(`tab-${tab}`).classList.remove('text-gray-500');
+
+            document.getElementById('stage-title').innerHTML = stageInfo[tab].title;
+            document.getElementById('stage-desc').innerText = stageInfo[tab].desc;
+
+            renderPrompts(tab);
+        }
+
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById("toast");
+                toast.className = "copy-toast show";
+                setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+            });
+        }
+
+        // 初始渲染
+        switchTab('stage1');
+    </script>
+</body>
+</html>
